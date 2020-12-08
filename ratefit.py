@@ -159,7 +159,7 @@ class ChemicalRateRestraint(IMP.Restraint):
         sigma,
         initial_conc_reagent,
         final_conc_reactant,
-        # time,
+        time,
     ):
         """
         input
@@ -170,7 +170,7 @@ class ChemicalRateRestraint(IMP.Restraint):
         self.initial_conc_reagent = initial_conc_reagent
         self.final_conc_reactant = final_conc_reactant
         self.sigma = sigma
-        # self.time = time
+        self.time = time
 
         self.particle_list = self.kparticles + [self.sigma]
         self.tn = TruncatedNormal(
@@ -180,8 +180,12 @@ class ChemicalRateRestraint(IMP.Restraint):
     def unprotected_evaluate(self, da):
         ksum = sum([k.get_scale() for k in self.kparticles])
         ki = self.kparticles[self.particleindex].get_scale()
-        forward_model = ki/ksum * self.initial_conc_reagent
-        # forward_model=ki/ksum*self.initial_conc_reagent*(1.0-math.exp(-self.time*ksum))
+        # this alternative approach for the forward model does not work well with sparseness
+        # it is possible to approximate sum_reactants with initial_conc_reagent but only for t >> 1
+        # forward_model = ki / ksum * self.sum_reactants
+        forward_model = (
+            ki / ksum * self.initial_conc_reagent * (1.0 - math.exp(-self.time * ksum))
+        )
         # prob=self.tn.get_log_pdf(self.sigma.get_scale(),forward_model)
         return self.tn.get_log_pdf(self.sigma.get_scale(), forward_model)
 
@@ -214,7 +218,7 @@ class MarginalChemicalRateRestraint(IMP.Restraint):
         sigma,
         initial_conc_reagent,
         final_conc_reactant,
-        # time,
+        time,
     ):
         """
         input
@@ -225,7 +229,7 @@ class MarginalChemicalRateRestraint(IMP.Restraint):
         self.initial_conc_reagent = initial_conc_reagent
         self.final_conc_reactant = final_conc_reactant
         self.sigma = sigma
-        # self.time = time
+        self.time = time
 
         self.particle_list = self.kparticles + [self.sigma]
         self.tn = TruncatedNormal(
@@ -237,10 +241,9 @@ class MarginalChemicalRateRestraint(IMP.Restraint):
     def unprotected_evaluate(self, da):
         ksum = sum([k.get_scale() for k in self.kparticles])
         ki = self.kparticles[self.particleindex].get_scale()
-        forward_model = ki/ksum * self.initial_conc_reagent
-        # forward_model = (
-        #     ki / ksum * self.initial_conc_reagent * (1.0 - math.exp(-self.time * ksum))
-        # )
+        forward_model = (
+            ki / ksum * self.initial_conc_reagent * (1.0 - math.exp(-self.time * ksum))
+        )
         prob = self.mtn.get_pdf(forward_model)
         return -self.math.log(prob)
 

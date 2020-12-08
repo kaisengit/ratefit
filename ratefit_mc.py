@@ -1,7 +1,6 @@
 import IMP
 import IMP.isd
-import math
-import numpy
+import numpy as np
 import random
 import ratefit as rf
 
@@ -41,7 +40,7 @@ for c in reacts:
     tmp = []
     for n, fc in enumerate(randreacts[c]):
         if fc is not None:
-            rest = rf.ChemicalRateRestraint(m, ks, n, sigma, c, fc)
+            rest = rf.ChemicalRateRestraint(m, ks, n, sigma, c, fc, time)
         else:
             rest = rf.VoidRestraint(m)
         crr.append(rest)
