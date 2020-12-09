@@ -85,8 +85,8 @@ for nloop in range(nsteps):
 
     # adapte the mover amplitudes
     rates = [k.get_scale() for k in ks]
-    for n in range(len(rates)):
-        mvs[n].set_sigma(k.get_scale() / 10)
+    for n, rate in enumerate(rates):
+        mvs[n].set_sigma(rate / 10)
     mvs[-1].set_sigma(sigma.get_scale() / 10)
 
     # print-out
